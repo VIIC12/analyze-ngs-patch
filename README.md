@@ -19,7 +19,7 @@ sample1,sample2,igl1_p2,ATCACACGTTCCAGACTACGCTGCTAG,GAACTGACAACTATATGCGAGCTGAGA,
 
 #### <u>Barcodes and length between barcodes</u>
 ![Explanation length between barcodes](https://docs.google.com/drawings/d/1PCBN5wQSFBwD71xal4ZbwcH0CPPnzmCGk6g9Fs3Qf4k/export/png)
-The easiest way is to use the sequence barcode + overlap for fw_barcode and rv_barcode. The _length between barcodes_ then corresponds exactly to your construct length.
+The easiest way is to use the sequence barcode + overlap (red+grey) for fw_barcode and rv_barcode. The _length between barcodes_ then corresponds exactly to your construct length.
 
 
 ### <u>Plotting</u>
