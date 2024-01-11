@@ -1,10 +1,21 @@
-## README
+# README
 
-I use the FULL fw_barcode and rv_barcode sequence (with the N/C overlap) → ReadingFrame should then always be 1. The length between the barcodes is then exactly the original construct length.
+**Usage:** ./run_ngs.sh [-n Path to the reference sequence] File with samples
+**Example:** ./run_ngs.sh -n ref_seq.fasta samples.txt
 
-samples.txt should look like this:
-sample1,igl1_p4_S1,ATCACACGTTCCAGACTACGCTGCTAG,GAACTGACAACTATATGCGAGCTGAGA,301,25
-sample2,igl1_p4_S2,ATCACACGTTCCAGACTACGCTGCTAG,GAACTGACAACTATATGCGAGCTGAGA,301,25
+### <u>SampleFile</u>
+Your samples file should look like this:
+file_name,sample_name,fw_barcode,rv_barcode,length between barcodes,postion of patch
 
-The consecutive lines are understood as duplicates.
-The script plots the patch in the zoomed heatmap from 2 positions before and up to 5 positions after the start position. I might adjust that again.
+sample1,igl1_p4,ATCACACGTTCCAGACTACGCTGCTAG,GAACTGACAACTATATGCGAGCTGAGA,301,25
+
+If you have several files (duplicates), you can simply add them to the front:
+file_name1,file_name2,...,sample_name,fw_barcode,rv_barcode,length between barcodes,postion of patch
+
+sample1,sample2,igl1_p4,ATCACACGTTCCAGACTACGCTGCTAG,GAACTGACAACTATATGCGAGCTGAGA,30125
+
+### <u>Plotting</u>
+The script plots the patch in the zoomed heatmap from 2 positions before and up to 5 positions after the start position. I will perhaps make this customizable again.
+
+---
+version = 1.1.0

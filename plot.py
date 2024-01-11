@@ -1,45 +1,54 @@
 #!/usr/bin/env python
-
+#v1.1
 from Bio import SeqIO
 from Bio.Seq import Seq
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import sys
+import warnings
+warnings.filterwarnings("ignore")
 
-def create_list_runs_from_file(filename: str):
+# For automatization
+def create_list_runs_from_file(filename: str, linenumber: int):
     """
-    Converts samples.txt to list_runs
+    Converts line of samples.txt to list_runs
     Example:
-        From:   sample1,igl1_p4_S1,ATCACACGTTCCAGACTACGCTGCTAG,GAACTGACAACTATATGCGAGCTGAGA,301,25
-                sample2,igl1_p4_S2,ATCACACGTTCCAGACTACGCTGCTAG,GAACTGACAACTATATGCGAGCTGAGA,301,25
-        to:     ["igl1_p4_S1", "igl1_p4_S2", "25", "32"]
+        From:   sample1,sample2,igl1_p4,ATCACACGTTCCAGACTACGCTGCTAG,GAACTGACAACTATATGCGAGCTGAGA,301,25
+        to:     [['igl1_p4_S1', 'igl1_p4_S2', '23', '30']]
     """
     with open(filename, 'r') as sampe_file:
         samples = sampe_file.read().splitlines()
 
-    if len(samples) % 2 != 0:
-        print("Odd number of samples, the last line is discarded!")
-
     list_runs = [
-        [
-            samples[i].split(',')[1], #sample name line 1
-            samples[i+1].split(',')[1],  #sample name line 2
-            str(int(samples[i].split(',')[5]) - 2),  # start patch -2 -> for zoomed heatmap
-            str(int(samples[i].split(',')[5]) + 5)  # start patch +5 -> for zoomed heatmap
-        ]
-        for i in range(0, len(samples) - 1, 2)
+    [fields[-5] + "_S" + str(i)
+     for i in range(1, len(fields) - 5)] +
+    [str(int(fields[-1]) - 2), str(int(fields[-1]) + 5)]
+    for fields in [samples[linenumber].split(',')]
     ]
+
     return list_runs
+
+#TODO Schrifart Fehler ausblenden
 
 #? argv
     # 1: frameshift
     # 2: reference_sequence
     # 3: sample_file name
+    # 4: line number
+
+
 
 reference_sequence = str(SeqIO.read(sys.argv[2], 'fasta').seq.translate())
-frameshift = int(sys.argv[1])
-list_runs = create_list_runs_from_file(sys.argv[3])
+if int(sys.argv[1]) == 1:
+    frameshift = None
+else:
+    frameshift = int(sys.argv[1])-1
+
+print(sys.argv)
+print(frameshift)
+
+list_runs = create_list_runs_from_file(sys.argv[3], int(sys.argv[4]))
 
 for run_num, runs in enumerate([run_only[:-2] for run_only in list_runs]):
     #? Generate mutation dicts
@@ -139,10 +148,8 @@ for run_num, runs in enumerate([run_only[:-2] for run_only in list_runs]):
     ax3.set_ylabel('AA', fontsize=12, fontname=font, style='italic')
     ax3.set_xlabel('Native', fontsize=12, fontname=font, style='italic')
     
-    plt.savefig(f'results/{runs[1][:-3]}.png', dpi=400)
-    print(f'{runs[1][:-3]} plotted')
-
-print('Plotting done!')
+    plt.savefig(f'results/{runs[0][:-3]}.png', dpi=400)
+    print(f'{runs[0][:-3]} plotted')
 
 __author__ = "Tom U. Schlegel"
 __contact__ = "tom.schlegel@uni-leipzig.de"
