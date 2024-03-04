@@ -4,7 +4,7 @@
 **Example:** ./run_ngs.sh -n ref_seq.fasta -s samples.txt
 
 ### <u>SampleFile</u>
-Each line is a unqiue sample, therefore each sample_name has to be unique. <br/>
+Each line is a unique sample, therefore each sample_name has to be unique. <br/>
 Your samples file should look like this: <br/>
 file_name,sample_name,fw_barcode,rv_barcode,length between barcodes,postion of patch <br/>
 file_name,sample_name2,fw_barcode,rv_barcode,length between barcodes,postion of patch <br/>
