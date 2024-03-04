@@ -1,10 +1,10 @@
 # README
 
-**Usage:** ./run_ngs.sh [-n Path to the reference sequence] File with samples <br/>
-**Example:** ./run_ngs.sh -n ref_seq.fasta samples.txt
+**Usage:** ./run_ngs.sh [-n <Path to the reference sequence>] [-s <Path to the samples file] [-o overwrite] <br/>
+**Example:** ./run_ngs.sh -n ref_seq.fasta -s samples.txt
 
 ### <u>SampleFile</u>
-Each line is a unqiue sample, therefore the sample_name have to be unique. <br/>
+Each line is a unqiue sample, therefore each sample_name has to be unique. <br/>
 Your samples file should look like this: <br/>
 file_name,sample_name,fw_barcode,rv_barcode,length between barcodes,postion of patch <br/>
 file_name,sample_name2,fw_barcode,rv_barcode,length between barcodes,postion of patch <br/>
@@ -26,4 +26,4 @@ The easiest way is to use the sequence barcode + overlap (red+grey) for fw_barco
 The script plots the patch in the zoomed heatmap from 2 positions before and up to 5 positions after the start position. I will probably make this customizable soon.
 
 ---
-version = 1.1.0
+version = 1.2.0

@@ -1,8 +1,9 @@
 #!/bin/zsh
-#v1.1.0
+#v1.2.0
+
 show_usage() {
-    echo "Usage: ./run_ngs.sh [-n <Path to the reference sequence>] <File with samples>"
-    echo "Example: ./run_ngs.sh -n ref_seq.fasta samples.txt"
+    echo "Usage: ./run_ngs.sh [-n <Path to the reference sequence>] [-s <Path to the samples file] [-o overwrite]"
+    echo "Example: ./run_ngs.sh -n ref_seq.fasta -s samples.txt"
 }
 
 error_exit() {
@@ -10,39 +11,40 @@ error_exit() {
     exit "${2:-1}"
 }
 
-while getopts "n:" opt; do
+check_file_existence() {
+    local file="$1"
+    local file_name="$2"
+    if [ -z "$file" ] || [ ! -f "$file" ]; then
+        error_exit "$file_name '$file' does not exist." 1
+    fi
+}
+
+while getopts "n:s:oh-" opt; do
     case $opt in
         n) path_to_nat_sequence="$OPTARG";;
-        \?) echo "Invalid argument: -$OPTARG" >&2; show_usage; exit 1;;
-        :) echo "argument -$OPTARG expects defintion." >&2; show_usage; exit 1;;
+        s) sample_file="$OPTARG";;
+        o) overwrite=true;;
+        h | --help) show_usage; exit 0;;
+         \?) show_usage; exit 1;;
     esac
 done
 
-# Move the position of the argument to take the "optind" into account -> $1 = samples
-shift $((OPTIND - 1))
-sample_file="$1"
-
-# Checks whether -n ist defined
-if [ -z "$path_to_nat_sequence" ]; then
+#Checks whether the number of arguments is correct.
+if [ "$#" -ge 6 ]; then
     show_usage
-    error_exit "The options -n and -f must be defined." 1
+    error_exit "Incorrect number of arguments. Please enter path to the native sequence and sample file." 1
 fi
 
-# Checks whether the number of arguments is correct
-if [ "$#" -ne 1 ]; then
-    show_usage
-    error_exit "Incorrect number of arguments. Please enter frameshift, path to the native sequence and sample file." 1
-fi
-
-# Checks whether the path_to_nat_sequence file exists
-if [ -z "$path_to_nat_sequence" ] || [ ! -f "$path_to_nat_sequence" ]; then
-    show_usage
-    error_exit "The reference sequence file '$path_to_nat_sequence' does not exist." 1
-fi
+check_file_existence "$path_to_nat_sequence" "Reference sequence"
+check_file_existence "$sample_file" "Sample file"
 
 # Checks whether all sample_names are unique
 while IFS=',' read -r line || [[ -n "$line" ]]; do
-    IFS=',' read -r -A fields <<< "$line"
+    IFS=',' read -r -A fields <<< "$line" # splits line up using the separator "," and saves the individual parts in an array called "fields"
+    if [ "${#fields[@]}" -lt 5 ]; then
+        error_exit "Invalid format in sample file: Each line must have at least 5 fields separated by commas. If you have several files (duplicates), you can simply add them to the front:
+            e.g.: file_name1,file_name2,...,sample_name,fw_barcode,rv_barcode,length between barcodes,postion of patch" 1
+    fi
     sample_name="${fields[-5]}"
     if [[ " ${processed_samples[@]} " =~ " $sample_name " ]]; then
         error_exit "Duplicate sample_name '$sample_name' found." 1
@@ -52,7 +54,6 @@ while IFS=',' read -r line || [[ -n "$line" ]]; do
 done < "$sample_file"
 
 mkdir -p ./demultiplex || error_exit "Demultiplex directory could not be created."
-mkdir -p ./results || error_exit "Results directory could not be created."
 
 demultiplex_sequence() {
     # Function that does the demultiplexing
@@ -64,13 +65,20 @@ demultiplex_sequence() {
     local output_seq="demultiplex/${sample_name}.seq"
     local output_fasta="demultiplex/${sample_name}.fasta"
 
-    #demultiplex
+    # Checks if the output file already exists and if the overwrite flag is set
+    if [ -e "$output_fasta" ]; then
+        if [ -n "$overwrite" ]; then
+            rm "$output_fasta" || error_exit "Failed to remove existing file: $output_fasta" 2
+        else
+            error_exit "The file '$output_fasta' already exists. Use the -o flag to overwrite." 2
+        fi
+    fi
+
+    # demultiplex -> sample.fasta to .seq
     grep -o "$bc_start.*$bc_end" "$fasta_file.fasta" | sed -e "s/.*$bc_start\(.*\)$bc_end.*/\1/" | awk "length(\$0) ==$length" > "$output_seq" || error_exit "Demultiplex error for ${sample_name}."
-    
-    #.seq to .fasta
-    if [[ -e "$output_fasta" ]]; then
-        error_exit "The file '$output_fasta' already exists." 2
-    else
+
+    # .seq to .fasta
+    if [ ! -e "$output_fasta" ]; then
         counter=0
         while IFS= read -r line; do
             let counter++
@@ -103,6 +111,7 @@ calculate_reading_frame() {
 }
 
 echo "Start Demultiplexing..."
+mkdir -p ./results || error_exit "Results directory could not be created."
 
 while IFS=',' read -r line || [[ -n "$line" ]]; do
     plotting_successful=true
@@ -119,7 +128,7 @@ while IFS=',' read -r line || [[ -n "$line" ]]; do
 
     echo "Plotting" $fields[-5]
     calculate_reading_frame $fields[-5] #returns $reading_frame
-    echo $reading_frame
+    #echo ReadingFrame: $reading_frame
     python plot.py "$reading_frame" "$path_to_nat_sequence" "$sample_file" "$adjusted_line_number" || { error_exit "Python script error."; ; plotting_successful=false; }
 done < "$sample_file"
 
@@ -130,4 +139,4 @@ fi
 # __author__ = "Tom U. Schlegel"
 # __contact__ = "tom.schlegel@uni-leipzig.de"
 # __license__ = "GNU GPLv3"
-# __version__ = "1.1"
+# __version__ = "1.2"

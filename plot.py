@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#v1.1
+#v1.2.0
 from Bio import SeqIO
 from Bio.Seq import Seq
 import pandas as pd
@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import sys
 import warnings
 warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib.font_manager")
 
 # For automatization
 def create_list_runs_from_file(filename: str, linenumber: int):
@@ -22,31 +23,25 @@ def create_list_runs_from_file(filename: str, linenumber: int):
 
     list_runs = [
     [fields[-5] + "_S" + str(i)
-     for i in range(1, len(fields) - 5)] +
+     for i in range(1, len(fields) - 4)] +
     [str(int(fields[-1]) - 2), str(int(fields[-1]) + 5)]
     for fields in [samples[linenumber].split(',')]
     ]
 
     return list_runs
 
-#TODO Schrifart Fehler ausblenden
-
 #? argv
+    # 0: plot.py
     # 1: frameshift
     # 2: reference_sequence
     # 3: sample_file name
     # 4: line number
-
-
 
 reference_sequence = str(SeqIO.read(sys.argv[2], 'fasta').seq.translate())
 if int(sys.argv[1]) == 1:
     frameshift = None
 else:
     frameshift = int(sys.argv[1])-1
-
-print(sys.argv)
-print(frameshift)
 
 list_runs = create_list_runs_from_file(sys.argv[3], int(sys.argv[4]))
 
@@ -148,10 +143,10 @@ for run_num, runs in enumerate([run_only[:-2] for run_only in list_runs]):
     ax3.set_ylabel('AA', fontsize=12, fontname=font, style='italic')
     ax3.set_xlabel('Native', fontsize=12, fontname=font, style='italic')
     
-    plt.savefig(f'results/{runs[0][:-3]}.png', dpi=400)
-    print(f'{runs[0][:-3]} plotted')
+    plt.savefig(f'results/{runs[0][:-3]}.png', dpi=400, bbox_inches="tight", pad_inches=1)
+    #print(f'{runs[0][:-3]} plotted')
 
 __author__ = "Tom U. Schlegel"
 __contact__ = "tom.schlegel@uni-leipzig.de"
 __license__ = "GNU GPLv3"
-__version__ = "1.0"
+__version__ = "1.2"
